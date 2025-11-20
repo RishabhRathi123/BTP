@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coverage Analysis - Final Presentation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Oswald:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* CORE SETUP */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #0f172a;
+            /* Dark Slate Background */
+            display: grid;
+            gap: 20px;
+            grid-template-columns: 1fr;
+            margin: 0;
+            min-height: 100vh;
+            padding: 20px 0;
+            place-items: center;
+            font-family: 'Inter', sans-serif;
+            color: #f8fafc;
+        }
+
+        .slide-container {
+            background-color: #1e293b;
+            /* Slate 800 */
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            height: 720px;
+            justify-content: center;
+            overflow: hidden;
+            padding: 60px;
+            position: relative;
+            width: 1280px;
+        }
+
+        /* TYPOGRAPHY */
+        h1,
+        h2,
+        h3 {
+            font-family: 'Oswald', sans-serif;
+            text-transform: uppercase;
+            margin: 0;
+            color: #ffffff;
+        }
+
+        h1 {
+            font-size: 72px;
+            letter-spacing: 2px;
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 48px;
+            letter-spacing: 1px;
+            margin-bottom: 30px;
+            color: #38bdf8;
+            /* Sky Blue Accent */
+        }
+
+        h3 {
+            font-size: 28px;
+            color: #94a3b8;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+
+        p,
+        li,
+        td,
+        th {
+            font-size: 20px;
+            line-height: 1.6;
+            color: #cbd5e1;
+        }
+
+        strong {
+            color: #38bdf8;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            font-size: 24px;
+            color: #cbd5e1;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+        }
+
+        /* LAYOUT UTILITIES */
+        .content-area {
+            display: flex;
+            flex-grow: 1;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            width: 100%;
+            height: 100%;
+            align-items: center;
+        }
+
+        .tiled-content {
+            display: flex;
+            gap: 30px;
+            width: 100%;
+            height: 100%;
+            align-items: stretch;
+        }
+
+        .tile {
+            background: #334155;
+            border: 1px solid #475569;
+            border-radius: 12px;
+            padding: 30px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            text-align: left;
+        }
+
+        .tile h3 {
+            color: #f1f5f9;
+            margin-top: 15px;
+        }
+
+        .tile .icon {
+            font-size: 42px;
+            color: #38bdf8;
+        }
+
+        /* IMAGES */
+        .image-wrapper {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid #475569;
+            height: 400px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #0f172a;
+            position: relative;
+        }
+
+        .image-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Helper text for missing images */
+        .image-wrapper::after {
+            content: attr(data-fallback);
+            position: absolute;
+            color: #ef4444;
+            /* Red warning color */
+            text-align: center;
+            padding: 20px;
+            font-weight: bold;
+            background: rgba(0, 0, 0, 0.8);
+            width: 100%;
+            height: 100%;
+            display: none;
+            /* Hidden by default */
+            align-items: center;
+            justify-content: center;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            /* Above image */
+        }
+
+        /* Show fallback when error class is added via JS */
+        .image-wrapper.image-error::after {
+            display: flex;
+        }
+
+        /* When image is broken/missing, show the fallback */
+        .image-wrapper img:not([src]),
+        .image-wrapper img[src=""] {
+            display: none;
+        }
+
+        /* Image contain mode for charts/diagrams */
+        .image-wrapper.contain img {
+            object-fit: contain;
+            padding: 10px;
+        }
+
+        /* TABLES */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #334155;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            padding: 18px; /* Slightly reduced padding to fit more columns */
+            text-align: center;
+            border-bottom: 1px solid #475569;
+            font-size: 18px; /* Adjusted font size */
+        }
+
+        th {
+            background: #0f172a;
+            color: #38bdf8;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:nth-child(even) {
+            background-color: #3b4a63;
+        }
+
+        /* TIMELINE */
+        .timeline-layout {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            width: 100%;
+            margin-top: 60px;
+        }
+
+        .timeline-line {
+            position: absolute;
+            top: 25px;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: #475569;
+            z-index: 0;
+        }
+
+        .timeline-item {
+            position: relative;
+            z-index: 1;
+            width: 23%;
+            text-align: center;
+        }
+
+        .timeline-dot {
+            width: 50px;
+            height: 50px;
+            background: #38bdf8;
+            border-radius: 50%;
+            margin: 0 auto 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0f172a;
+            font-weight: 700;
+            font-size: 24px;
+            box-shadow: 0 0 0 8px #1e293b;
+        }
+
+        /* MATH & FORMULAS */
+        .math-block {
+            background: #0f172a;
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 5px solid #38bdf8;
+            font-family: 'JetBrains Mono', monospace;
+            color: #e2e8f0;
+            margin: 20px 0;
+            font-size: 18px;
+        }
+
+        /* Highlighted Number */
+        .highlight-number {
+            font-size: 140px;
+            font-weight: 700;
+            color: #38bdf8;
+            font-family: 'Oswald', sans-serif;
+            line-height: 1;
+        }
+
+        /* Slide 1 Specifics */
+        .title-slide-content {
+            text-align: center;
+            z-index: 2;
+            position: relative;
+        }
+
+        .student-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 50px;
+            text-align: center;
+        }
+
+        .student-card {
+            font-family: 'JetBrains Mono', monospace;
+            color: #7dd3fc;
+        }
+
+        .guide-section {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Bleed Image Layout */
+        .bleed-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            padding: 0;
+            height: 100%;
+        }
+
+        .bleed-text {
+            padding: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .bleed-img {
+            width: 100%;
+            height: 720px;
+            object-fit: cover;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- PAGE 1: Title Slide -->
+    <div class="slide-container"
+        style="background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.7)), url('https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=2070&auto=format&fit=crop'); background-size: cover;">
+        <div class="title-slide-content">
+            <h3 style="letter-spacing: 4px; color: #38bdf8; margin-bottom: 20px;">B.TECH PROJECT PRESENTATION</h3>
+            <h1>COVERAGE ANALYSIS</h1>
+            <p class="subtitle" style="font-size: 28px; color: #fff;">Enhancing Neural Network Reliability via
+                Signature-Based Training</p>
+
+            <div class="student-grid">
+                <div class="student-card">
+                    <div style="font-size: 22px; font-weight: 600;">Rushil Aryan Singh</div>
+                    <div style="font-size: 18px; opacity: 0.8;">22UCS170</div>
+                </div>
+                <div class="student-card">
+                    <div style="font-size: 22px; font-weight: 600;">Rishabh Rathi</div>
+                    <div style="font-size: 18px; opacity: 0.8;">22UCS166</div>
+                </div>
+                <div class="student-card">
+                    <div style="font-size: 22px; font-weight: 600;">Manas Tripathi</div>
+                    <div style="font-size: 18px; opacity: 0.8;">22UCC061</div>
+                </div>
+            </div>
+
+            <div class="guide-section">
+                <p style="font-size: 20px; margin: 0;">Under Guidance of</p>
+                <h3 style="font-size: 32px; color: #fff; margin: 10px 0;">Dr. Bharavi Mishra</h3>
+                <p style="font-size: 18px; color: #94a3b8;">Dept. of CSE | The LNM Institute of Information Technology
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 2: Black Box Problem -->
+    <div class="slide-container">
+        <h2 class="slide-title">The "Black Box" Problem</h2>
+        <div class="content-area">
+            <div class="two-column">
+                <div>
+                    <h3 style="color: #cbd5e1; margin-bottom: 25px;">ACCURACY VS. RELIABILITY</h3>
+                    <p>Traditional Deep Neural Networks (DNNs) like VGG-19 prioritize maximizing classification accuracy
+                        (Cross-Entropy Loss). However, they act as "black boxes".</p>
+                    <ul style="margin-top: 30px; padding-left: 20px;">
+                        <li style="margin-bottom: 20px;"><strong>Unregulated Behavior:</strong> Neurons may fire
+                            inconsistently for the same class.</li>
+                        <li style="margin-bottom: 20px;"><strong>Lack of Interpretability:</strong> Hard to verify "why"
+                            a decision was made.</li>
+                        <li><strong>Fragility:</strong> High accuracy on training data doesn't guarantee robust internal
+                            logic.</li>
+                    </ul>
+                </div>
+                <div class="image-wrapper contain" style="background: #fff;"
+                    data-fallback="Missing: Black-Box-AI-Models-vs-Interpretable-and-Explainable-AI-Models.webp">
+                    <!-- Updated Image Source -->
+                    <img src="Black-Box-AI-Models-vs-Interpretable-and-Explainable-AI-Models.webp"
+                        alt="Neural Network Black Box Visualization"
+                        onerror="this.style.display='none'; this.parentElement.classList.add('image-error');">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 3: Proposed Solution -->
+    <div class="slide-container">
+        <h2 class="slide-title">Proposed Solution: Coverage-Guided Training</h2>
+        <div class="content-area">
+            <div class="tiled-content">
+                <div class="tile">
+                    <div class="icon"><i class="fa-solid fa-brain"></i></div>
+                    <h3>INTERNAL REGULARIZATION</h3>
+                    <p>We don't just check the final output. We regulate <strong>internal neuron activations</strong>
+                        during the training process itself.</p>
+                </div>
+                <div class="tile">
+                    <div class="icon"><i class="fa-solid fa-fingerprint"></i></div>
+                    <h3>ACTIVATION SIGNATURES</h3>
+                    <p>We construct class-specific <strong>"Signatures"</strong> (Multi-Range Coverage) that define the
+                        expected "safe" behavior for neurons.</p>
+                </div>
+                <div class="tile">
+                    <div class="icon"><i class="fa-solid fa-sync-alt"></i></div>
+                    <h3>DYNAMIC ADAPTATION</h3>
+                    <p>Signatures are updated dynamically using <strong>Exponential Moving Averages (EMA)</strong> to
+                        evolve with the model's weights.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 4: System Architecture -->
+    <div class="slide-container">
+        <h2 class="slide-title">System Architecture</h2>
+        <div class="content-area">
+            <div class="two-column">
+                <div class="image-wrapper contain" style="background: #fff;"
+                    data-fallback="Missing: VGG--19-Architecture-.webp">
+                    <!-- Updated Image Source -->
+                    <img src="VGG--19-Architecture-.webp" alt="VGG-19 Architecture Diagram"
+                        onerror="this.style.display='none'; this.parentElement.classList.add('image-error');">
+                </div>
+                <div>
+                    <h3 style="color: #cbd5e1;">MODIFIED VGG-19</h3>
+                    <p>We utilized a lightweight VGG-19 backbone with specific architectural enhancements for coverage
+                        analysis:</p>
+                    <ul style="margin-top: 20px; padding-left: 20px;">
+                        <li style="margin-bottom: 20px;"><strong>Base Model:</strong> VGG-19 (Convolutional Blocks + Max
+                            Pooling).</li>
+                        <li style="margin-bottom: 20px;"><strong>Instrumentation:</strong> Inserted "Coverage Layers"
+                            after key convolutional blocks.</li>
+                        <li><strong>Function:</strong> These layers capture activation vectors <math display="inline"
+                                style="color:#38bdf8">
+                                <msubsup>
+                                    <mi>a</mi>
+                                    <mi>i</mi>
+                                    <mi>l</mi>
+                                </msubsup>
+                            </math> during the forward pass without disrupting the inference flow.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 5: Static vs Dynamic -->
+    <div class="slide-container">
+        <h2 class="slide-title">Activation Signatures: Static vs. Dynamic</h2>
+        <div class="content-area">
+            <div class="tiled-content">
+                <div class="tile">
+                    <h3 style="color: #94a3b8; border-bottom: 2px solid #475569; width: 100%; padding-bottom: 10px;">
+                        STATIC SIGNATURES</h3>
+                    <p style="margin-top: 20px;">Computed once before training begins using a subset of data.</p>
+                    <ul style="padding-left: 20px;">
+                        <li><strong>Pros:</strong> Simple to implement.</li>
+                        <li><strong>Cons:</strong> Can become "stale" as model weights change significantly during
+                            training.</li>
+                        <li><strong>Risk:</strong> Penalizing valid new behaviors learned by the network.</li>
+                    </ul>
+                </div>
+                <div class="tile" style="background: #1e3a8a; border-color: #38bdf8;">
+                    <h3 style="color: #38bdf8; border-bottom: 2px solid #38bdf8; width: 100%; padding-bottom: 10px;">
+                        DYNAMIC SIGNATURES</h3>
+                    <p style="margin-top: 20px;">Updated periodically (every T epochs) using a Sliding Window.</p>
+                    <ul style="padding-left: 20px;">
+                        <li><strong>EMA Update:</strong> <math display="inline">
+                                <msub>
+                                    <mi>S</mi>
+                                    <mi>new</mi>
+                                </msub>
+                                <mo>=</mo>
+                                <mi>&#945;</mi>
+                                <mo>&#183;</mo>
+                                <msub>
+                                    <mi>S</mi>
+                                    <mi>old</mi>
+                                </msub>
+                                <mo>+</mo>
+                                <mo>(</mo>
+                                <mn>1</mn>
+                                <mo>-</mo>
+                                <mi>&#945;</mi>
+                                <mo>)</mo>
+                                <mo>&#183;</mo>
+                                <msub>
+                                    <mi>S</mi>
+                                    <mi>cur</mi>
+                                </msub>
+                            </math></li>
+                        <li><strong>Benefit:</strong> Adapts to the evolving feature space.</li>
+                        <li><strong>Result:</strong> Better generalization and less rigid constraints.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 6: Loss Function -->
+    <div class="slide-container">
+        <h2 class="slide-title">The Loss Function: MRC Loss</h2>
+        <div class="content-area">
+            <div class="two-column">
+                <div>
+                    <h3 style="color: #cbd5e1;">DUAL-OBJECTIVE OPTIMIZATION</h3>
+                    <p>We optimize for both Accuracy and Consistency. The total loss is a weighted sum:</p>
+                    <div class="math-block">
+                        <math display="block">
+                            <msub>
+                                <mi>L</mi>
+                                <mi>total</mi>
+                            </msub>
+                            <mo>=</mo>
+                            <msub>
+                                <mi>L</mi>
+                                <mi>CE</mi>
+                            </msub>
+                            <mo>+</mo>
+                            <msub>
+                                <mi>&#955;</mi>
+                                <mi>cov</mi>
+                            </msub>
+                            <mo>&#183;</mo>
+                            <msub>
+                                <mi>L</mi>
+                                <mi>coverage</mi>
+                            </msub>
+                        </math>
+                    </div>
+                    <p>Where <math display="inline">
+                            <msub>
+                                <mi>L</mi>
+                                <mi>coverage</mi>
+                            </msub>
+                        </math> consists of:</p>
+                    <ol style="padding-left: 25px;">
+                        <li>Range Penalty: Penalizes activations outside the [min, max] percentile.</li>
+                        <li>Distribution Penalty: MSE between current and expected histograms.</li>
+                    </ol>
+                </div>
+                <div>
+                    <h3 style="font-size: 22px; color: #38bdf8;">RANGE PENALTY FORMULA</h3>
+                    <div class="math-block" style="font-size: 16px;">
+                        <math display="block">
+                            <msubsup>
+                                <mi>L</mi>
+                                <mi>range</mi>
+                                <mrow>
+                                    <mo>(</mo>
+                                    <mi>i</mi>
+                                    <mo>,</mo>
+                                    <mi>l</mi>
+                                    <mo>)</mo>
+                                </mrow>
+                            </msubsup>
+                            <mo>=</mo>
+                            <mfrac>
+                                <mn>1</mn>
+                                <msub>
+                                    <mi>d</mi>
+                                    <mi>l</mi>
+                                </msub>
+                            </mfrac>
+                            <munderover>
+                                <mo>&#8721;</mo>
+                                <mrow>
+                                    <mi>j</mi>
+                                    <mo>=</mo>
+                                    <mn>1</mn>
+                                </mrow>
+                                <msub>
+                                    <mi>d</mi>
+                                    <mi>l</mi>
+                                </msub>
+                            </munderover>
+                            <mi mathvariant="script">H</mi>
+                            <mfenced open="[" close="]">
+                                <mrow>
+                                    <msubsup>
+                                        <mi>a</mi>
+                                        <mrow>
+                                            <mi>i</mi>
+                                            <mo>,</mo>
+                                            <mi>j</mi>
+                                        </mrow>
+                                        <mi>l</mi>
+                                    </msubsup>
+                                    <mo>&lt;</mo>
+                                    <msubsup>
+                                        <mi>min</mi>
+                                        <mrow>
+                                            <mi>c</mi>
+                                            <mo>,</mo>
+                                            <mi>l</mi>
+                                            <mo>,</mo>
+                                            <mi>j</mi>
+                                        </mrow>
+                                        <mi>s</mi>
+                                    </msubsup>
+                                    <mo>&#8744;</mo>
+                                    <msubsup>
+                                        <mi>a</mi>
+                                        <mrow>
+                                            <mi>i</mi>
+                                            <mo>,</mo>
+                                            <mi>j</mi>
+                                        </mrow>
+                                        <mi>l</mi>
+                                    </msubsup>
+                                    <mo>&gt;</mo>
+                                    <msubsup>
+                                        <mi>max</mi>
+                                        <mrow>
+                                            <mi>c</mi>
+                                            <mo>,</mo>
+                                            <mi>l</mi>
+                                            <mo>,</mo>
+                                            <mi>j</mi>
+                                        </mrow>
+                                        <mi>s</mi>
+                                    </msubsup>
+                                </mrow>
+                            </mfenced>
+                        </math>
+                    </div>
+
+                    <h3 style="font-size: 22px; color: #38bdf8; margin-top: 30px;">DISTRIBUTION PENALTY FORMULA</h3>
+                    <div class="math-block" style="font-size: 16px;">
+                        <math display="block">
+                            <msub>
+                                <mi>L</mi>
+                                <mi>dist</mi>
+                            </msub>
+                            <mo>=</mo>
+                            <mfrac>
+                                <mn>1</mn>
+                                <mi>K</mi>
+                            </mfrac>
+                            <munderover>
+                                <mo>&#8721;</mo>
+                                <mrow>
+                                    <mi>k</mi>
+                                    <mo>=</mo>
+                                    <mn>1</mn>
+                                </mrow>
+                                <mi>K</mi>
+                            </munderover>
+                            <msup>
+                                <mrow>
+                                    <mo>(</mo>
+                                    <msubsup>
+                                        <mi>P</mi>
+                                        <mrow>
+                                            <mi>cur</mi>
+                                            <mo>,</mo>
+                                            <mi>k</mi>
+                                        </mrow>
+                                        <mrow>
+                                            <mo>(</mo>
+                                            <mi>i</mi>
+                                            <mo>,</mo>
+                                            <mi>l</mi>
+                                            <mo>)</mo>
+                                        </mrow>
+                                    </msubsup>
+                                    <mo>-</mo>
+                                    <msub>
+                                        <mi>P</mi>
+                                        <mrow>
+                                            <mover>
+                                                <mi>c</mi>
+                                                <mo>^</mo>
+                                            </mover>
+                                            <mo>,</mo>
+                                            <mi>l</mi>
+                                            <mo>,</mo>
+                                            <mi>k</mi>
+                                        </mrow>
+                                    </msub>
+                                    <mo>)</mo>
+                                </mrow>
+                                <mn>2</mn>
+                            </msup>
+                        </math>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 7: Dynamic Training Workflow -->
+    <div class="slide-container">
+        <h2 class="slide-title">Dynamic Training Workflow</h2>
+        <div class="content-area">
+            <div class="timeline-layout">
+                <div class="timeline-line"></div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot">1</div>
+                    <h3>INITIALIZATION</h3>
+                    <p>Initialize <math display="inline">
+                            <msup>
+                                <mi>S</mi>
+                                <mrow>
+                                    <mo>(</mo>
+                                    <mn>0</mn>
+                                    <mo>)</mo>
+                                </mrow>
+                            </msup>
+                        </math> (Signatures) using a small subset of training data.</p>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot">2</div>
+                    <h3>TRAINING STEP</h3>
+                    <p>Standard Forward Pass. Compute <math display="inline">
+                            <msub>
+                                <mi>L</mi>
+                                <mi>CE</mi>
+                            </msub>
+                        </math> and <math display="inline">
+                            <msub>
+                                <mi>L</mi>
+                                <mi>cov</mi>
+                            </msub>
+                        </math> based on current signature.</p>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot">3</div>
+                    <h3>ACCUMULATION</h3>
+                    <p>Store activation statistics in a sliding window buffer W.</p>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot">4</div>
+                    <h3>UPDATE (EPOCH T)</h3>
+                    <p>Refresh Signatures S using EMA of the sliding window.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 8: Experimental Setup -->
+    <div class="slide-container">
+        <h2 class="slide-title">Experimental Setup</h2>
+        <div class="content-area">
+            <div class="two-column">
+                <div>
+                    <div class="tile" style="margin-bottom: 20px;">
+                        <h3 style="margin: 0;">CIFAR-10 DATASET</h3>
+                        <p style="margin: 5px 0 0;">60k Images, 10 Classes (10% subset used).</p>
+                    </div>
+                    <div class="tile" style="margin-bottom: 20px;">
+                        <h3 style="margin: 0;">HARDWARE</h3>
+                        <p style="margin: 5px 0 0;">NVIDIA Tesla T4 (16GB VRAM).</p>
+                    </div>
+                    <div class="tile">
+                        <h3 style="margin: 0;">HYPERPARAMETERS</h3>
+                        <p style="margin: 5px 0 0;">Epochs: 12 | <math display="inline">
+                                <msub>
+                                    <mi>&#955;</mi>
+                                    <mi>cov</mi>
+                                </msub>
+                                <mo>=</mo>
+                                <mn>0.1</mn>
+                            </math> | Bins: 10</p>
+                    </div>
+                </div>
+                <div class="image-wrapper contain" style="background: #fff;" data-fallback="Missing: Output.png">
+                    <!-- Updated Image Source -->
+                    <img src="Output.png" alt="CIFAR-10 Dataset Sample Grid"
+                        onerror="this.style.display='none'; this.parentElement.classList.add('image-error');">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 9: Quantitative Results -->
+    <div class="slide-container">
+        <h2 class="slide-title">🏆 Final Metrics Comparison 🏆</h2>
+        <div class="content-area">
+            <div class="two-column">
+                <!-- Left Column: Table -->
+                <div style="display: flex; flex-direction: column; justify-content: center;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Model</th>
+                                <th>F1 Score</th>
+                                <th>Precision</th>
+                                <th>Recall</th>
+                                <th>Accuracy</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Standard VGG-19</td>
+                                <td>0.8504</td>
+                                <td>0.8560</td>
+                                <td>0.8510</td>
+                                <td>85.10%</td>
+                            </tr>
+                            <tr>
+                                <td>Static MRC</td>
+                                <td>0.8724</td>
+                                <td>0.8758</td>
+                                <td>0.8720</td>
+                                <td>87.20%</td>
+                            </tr>
+                            <tr style="background: #1e3a8a; border: 2px solid #38bdf8;">
+                                <td><strong>Dynamic MRC</strong></td>
+                                <td><strong>0.8639</strong></td>
+                                <td><strong>0.8675</strong></td>
+                                <td><strong>0.8630</strong></td>
+                                <td><strong>86.30%</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div
+                        style="margin-top: 30px; padding: 20px; background: rgba(56, 189, 248, 0.1); border-radius: 8px; border-left: 5px solid #38bdf8;">
+                        <p style="font-size: 22px; margin: 0; color: #e2e8f0;"><i class="fa-solid fa-chart-line"
+                                style="color: #38bdf8; margin-right: 15px;"></i> Consistent improvement in F1 Score & Precision.</p>
+                    </div>
+                </div>
+                <!-- Right Column: Result Graph -->
+                <div class="image-wrapper contain" style="background: #fff;"
+                    data-fallback="Missing: PHOTO-2025-11-19-19-56-14.jpg">
+                    <!-- IMPORTANT: New accuracy graph -->
+                    <img src="PHOTO-2025-11-19-19-56-14.jpeg" alt="Training & Validation Accuracy"
+                        onerror="this.style.display='none'; this.parentElement.classList.add('image-error');">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 10: Training Dynamics -->
+    <div class="slide-container">
+        <h2 class="slide-title">Training Dynamics & Loss</h2>
+        <div class="content-area">
+            <div class="two-column">
+                <div class="image-wrapper contain" style="background: #fff;"
+                    data-fallback="Missing: PHOTO-2025-11-19-19-53-27.jpg">
+                    <!-- IMPORTANT: Training loss comparison graph -->
+                    <img src="PHOTO-2025-11-19-19-53-27.jpeg" alt="Training Loss & Validation Accuracy Comparison"
+                        onerror="this.style.display='none'; this.parentElement.classList.add('image-error');">
+                </div>
+                <div>
+                    <h3 style="color: #38bdf8;">FASTER CONVERGENCE</h3>
+                    <p>The Dynamic MRC model (Blue/Purple) reaches higher accuracy peaks and stabilizes faster than the Standard VGG-19 (Red).</p>
+
+                    <h3 style="color: #38bdf8; margin-top: 40px;">LOSS MINIMIZATION</h3>
+                    <p>The joint objective function efficiently minimizes classification error while regulating behavior, proving that <math display="inline">
+                            <msub>
+                                <mi>&#955;</mi>
+                                <mi>cov</mi>
+                            </msub>
+                        </math> aids learning.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 11: F1 vs Precision vs Recall -->
+    <div class="slide-container">
+        <h2 class="slide-title">Model Comparison: F1, Precision, Recall</h2>
+        <div class="content-area">
+            <div class="two-column">
+                 <div>
+                    <h3 style="color: #cbd5e1;">BALANCED PERFORMANCE</h3>
+                    <p>Our model achieves a balanced improvement across all key metrics, not just accuracy.</p>
+                    <ul style="margin-top: 20px; padding-left: 20px;">
+                        <li style="margin-bottom: 15px;"><strong>Higher Precision:</strong> Fewer false positives.</li>
+                        <li style="margin-bottom: 15px;"><strong>Better Recall:</strong> Captures more relevant cases.</li>
+                        <li><strong>Consistent F1:</strong> Reliable harmonic mean of precision and recall.</li>
+                    </ul>
+                </div>
+                 <div class="image-wrapper contain" style="background: #fff;"
+                    data-fallback="Missing: PHOTO-2025-11-19-19-51-30.jpg">
+                    <!-- IMPORTANT: Bar chart comparison -->
+                    <img src="PHOTO-2025-11-19-19-51-30.jpeg" alt="Model Comparison Bar Chart"
+                        onerror="this.style.display='none'; this.parentElement.classList.add('image-error');">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 12: Conclusion & Future Work -->
+    <div class="slide-container bleed-container">
+        <div class="bleed-text">
+            <h2 class="slide-title" style="margin-bottom: 40px;">Conclusion & Future Work</h2>
+
+            <div style="margin-bottom: 40px;">
+                <h3 style="color: #38bdf8;"><i class="fa-solid fa-check-circle"></i> CONCLUSION</h3>
+                <p>Dynamic Signature-Based Training successfully enforces structural regularization. It yields models
+                    that are both <strong>more accurate</strong> and <strong>more interpretable</strong>.</p>
+            </div>
+
+            <div>
+                <h3 style="color: #38bdf8;"><i class="fa-solid fa-arrow-right"></i> FUTURE WORK</h3>
+                <p>Scale to larger architectures like <strong>ResNet</strong> and <strong>Vision Transformers</strong>.
+                </p>
+            </div>
+        </div>
+        <div>
+            <img class="bleed-img"
+                src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1000&auto=format&fit=crop"
+                alt="Futuristic Technology Background">
+        </div>
+    </div>
+
+    <!-- PAGE 13: Thank You -->
+    <div class="slide-container" style="text-align: center;">
+        <div class="content-area" style="flex-direction: column;">
+            <h1 style="font-size: 120px; margin-bottom: 60px; color: #38bdf8;">THANK YOU</h1>
+
+            <div style="display: flex; justify-content: center;">
+                <div class="tile" style="align-items: center; min-width: 400px; cursor: pointer;"
+                    onclick="window.open('https://github.com/rushilaryan/BTP/blob/main/README.md', '_blank')">
+                    <i class="fa-brands fa-github" style="font-size: 48px; color: #38bdf8; margin-bottom: 20px;"></i>
+                    <p style="font-size: 24px; margin: 0;">View Project on GitHub</p>
+                    <p style="font-size: 14px; color: #94a3b8; margin-top: 10px;">rushilaryan/BTP</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
